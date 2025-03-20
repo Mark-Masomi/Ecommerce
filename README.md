@@ -145,4 +145,4 @@ curl http://localhost:8080/api/products
 
 ## License
 
-Distributed under the MIT License. See LICENSE for more information.
+Distributed under the MIT License. See [LICENSE](LICENSE) for more information.
