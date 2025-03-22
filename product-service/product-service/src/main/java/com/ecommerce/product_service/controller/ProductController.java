@@ -35,6 +35,22 @@ public class ProductController {
 
     }
 
+    @Operation(summary = "Find product by name")
+    @ResponseStatus(HttpStatus.FOUND)
+    @GetMapping("/name/{name}")
+    public Product findProductByName(@PathVariable String name ){
+
+        return productRepository.findByName(name);
+    }
+
+    @Operation(summary = "Find product by sku")
+    @ResponseStatus(HttpStatus.FOUND)
+    @GetMapping("/sku/{sku}")
+    public Product findProductBySku (@PathVariable String sku){
+
+        return productRepository.findBySku(sku);
+    }
+
     @Operation(summary = "Create a new product")
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
@@ -63,5 +79,7 @@ public class ProductController {
 
         productRepository.deleteById(id);
     }
+
+
 
 }
