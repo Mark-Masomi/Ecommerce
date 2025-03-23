@@ -45,8 +45,8 @@ A scalable e-commerce backend system built with Spring Boot microservices archit
 
 1. Clone the repository:
     ```bash
-    git clone https://github.com/yourusername/ecommerce-microservices.git
-    cd ecommerce-microservices
+    git clone https://github.com/Mark-Masomi/Ecommerce.git
+    cd Ecommerce
     ```
 
 2. Build all services:
