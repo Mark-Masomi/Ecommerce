@@ -1,10 +1,12 @@
 package com.ecommerce.product_service.controller;
 
+import com.ecommerce.product_service.dto.StockUpdateRequest;
 import com.ecommerce.product_service.model.Product;
 import com.ecommerce.product_service.repository.ProductRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -81,5 +83,16 @@ public class ProductController {
     }
 
 
+    @PutMapping("/{id}/stock")
+    public ResponseEntity<Void> updateProductStock(@PathVariable Long id, @RequestBody StockUpdateRequest request ){
+        Product product = productRepository.findById(id).orElseThrow(()-> new RuntimeException("product not found"));
 
+        int newStock=product.getStockQuantity()+request.getQuantityChange();
+
+        product.setStockQuantity(newStock);
+
+        productRepository.save(product);
+
+        return ResponseEntity.ok().build();
+    }
 }
