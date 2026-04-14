@@ -36,6 +36,8 @@ dependencies {
 	annotationProcessor("org.projectlombok:lombok")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+	implementation("io.github.resilience4j:resilience4j-spring-boot3")
+	implementation("org.springframework.boot:spring-boot-starter-validation")
 }
 
 dependencyManagement {
