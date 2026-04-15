@@ -1,6 +1,6 @@
 package com.ecommerce.order_service.feign;
 
-import com.ecommerce.order_service.dto.ProductRequest;
+import com.ecommerce.order_service.dto.ProductDto;
 import com.ecommerce.order_service.dto.StockUpdateRequest;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,10 +12,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 public interface ProductServiceClient {
 
     @GetMapping("/{id}")
-    ProductRequest getProductById(@PathVariable Long id);
+    ProductDto getProductById(@PathVariable("id") Long id);
 
+    @GetMapping("/{id}/stock}")
+    Integer getProductStock(@PathVariable("id") Long id);
 
     @PutMapping("/{id}/stock")
-    void updateStock (@PathVariable Long id, @RequestBody StockUpdateRequest stockUpdate);
+    void updateStock (@PathVariable("id") Long id, @RequestBody StockUpdateRequest stockUpdate);
 
 }

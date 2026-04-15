@@ -1,5 +1,6 @@
 package com.ecommerce.order_service.dto;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 import jakarta.validation.Valid;
@@ -10,7 +11,7 @@ import java.util.List;
 @Data
 public class OrderRequest {
 
-    @NotEmpty(message = "Costumer Id is Required")
+    @NotNull(message = "Costumer Id cannot be null")
     private String customerId;
 
     @NotEmpty(message = "Order must contain at least one item")

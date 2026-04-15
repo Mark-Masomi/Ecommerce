@@ -15,7 +15,7 @@ import java.math.BigDecimal;
 @Builder
 public class OrderItem {
 
-    private String productId;  //Reference to product-service
+    private Long productId;  //Reference to product-service
     private String sku;
     private Integer quantity;
     private BigDecimal unitPrice;
