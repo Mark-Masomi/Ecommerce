@@ -35,14 +35,14 @@ public class OrderServiceImpl implements OrderService {
        validateStock(orderRequest.getItems());
 
        Order order = mapToOrder(orderRequest);
-       Order saveOrder = orderRepository.save(order);
+       Order savedOrder = orderRepository.save(order);
 
        updateProductStock(orderRequest.getItems());
 
 
 
 
-        return null;
+        return mapToOrderResponse(savedOrder);
     }
 
     private void validateStock(List<OrderItemRequest> items){
@@ -107,6 +107,28 @@ public class OrderServiceImpl implements OrderService {
                     return product.getPrice().multiply(BigDecimal.valueOf(item.getQuantity()));
                 })
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    private OrderResponse mapToOrderResponse(Order order) {
+        return OrderResponse.builder()
+                .orderNumber(order.getOrderNumber())
+                .orderDate(order.getOrderDate())
+                .totalPrice(order.getTotalPrice())
+                .status(order.getStatus())
+                .items(order.getItems().stream().map(this::mapToOrderItemResponse)
+                        .collect(Collectors.toList()))
+                .build();
+
+
+    }
+
+    private OrderItemResponse mapToOrderItemResponse(OrderItem item){
+        return OrderItemResponse.builder()
+                .productId(item.getProductId())
+                .sku(item.getSku())
+                .quantity(item.getQuantity())
+                .unitPrice(item.getUnitPrice())
+                .build();
     }
 
     //
