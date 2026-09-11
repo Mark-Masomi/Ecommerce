@@ -3,7 +3,7 @@ package com.ecommerce.order_service.dto;
 import lombok.Data;
 
 import java.math.BigDecimal;
-
+//what Product-Service returns
 @Data
 public class ProductDto {
 

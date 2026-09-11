@@ -15,4 +15,5 @@ public class OrderItemResponse {
     private BigDecimal unitPrice;
     private BigDecimal totalPrice;
 
+    //totalPrice may be unnecessary
 }
