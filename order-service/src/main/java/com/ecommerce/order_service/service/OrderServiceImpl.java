@@ -1,6 +1,7 @@
 package com.ecommerce.order_service.service;
 import com.ecommerce.order_service.dto.*;
 import com.ecommerce.order_service.exeption.InsufficientStockException;
+import com.ecommerce.order_service.exeption.ServiceUnavailableException;
 import com.ecommerce.order_service.feign.ProductServiceClient;
 import com.ecommerce.order_service.model.Order;
 import com.ecommerce.order_service.model.OrderItem;
@@ -130,6 +131,12 @@ public class OrderServiceImpl implements OrderService {
                 .unitPrice(item.getUnitPrice())
                 .build();
     }
+
+    // fallback-method for circuit breaker
+    public OrderResponse fallBackCreateOrder(OrderRequest orderRequest,Throwable t){
+        throw new ServiceUnavailableException("Order service is temporarily unavailable, please try again later.");
+    }
+
 
     //
     public void checkStock(Long productId,int requstedQuantity){
