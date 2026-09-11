@@ -20,3 +20,12 @@ eureka:
 feign:
   circuitbreaker:
     enabled: true
+
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      orderService:
+        register-health-indicator: true
+        sliding-window-size: 10
+        failure-rate-threshold: 50
