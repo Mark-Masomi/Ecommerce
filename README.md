@@ -137,12 +137,14 @@ curl http://localhost:8080/api/products
 
 ## Contributing
 
-- Fork the project
-- Create your feature branch (`git checkout -b feature/AmazingFeature`)
-- Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-- Push to the branch (`git push origin feature/AmazingFeature`)
-- Open a Pull Request
+Contributions are welcome with prior written permission from the copyright holder.
+
+If you would like to contribute, please contact the repository owner before making changes or submitting a pull request.
 
 ## License
 
-Distributed under the MIT License. See [LICENSE](LICENSE) for more information
+Copyright © 2025 Mark-Masomi. All rights reserved.
+
+This project is publicly available for viewing and educational reference. No permission is granted to use, copy, modify, distribute, or commercially use this source code without prior written permission.
+
+See [LICENSE](LICENSE) for the full license terms.
