@@ -14,7 +14,6 @@ A backend e-commerce system built with Spring Boot microservices architecture us
 ## Technologies
 
 - Java 17
-- Kotlin 1.9+
 - Spring Boot 3.2.x
 - Spring Cloud 2023.0.x
 - Spring Data JPA
