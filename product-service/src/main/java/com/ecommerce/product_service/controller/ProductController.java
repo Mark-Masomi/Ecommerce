@@ -1,5 +1,8 @@
 package com.ecommerce.product_service.controller;
 
+import com.ecommerce.product_service.dto.StockUpdateRequest;
+import com.ecommerce.product_service.exception.InsufficientStockException;
+import com.ecommerce.product_service.exception.ProductNotFoundException;
 import com.ecommerce.product_service.model.Product;
 import com.ecommerce.product_service.repository.ProductRepository;
 import io.swagger.v3.oas.annotations.Operation;
@@ -19,6 +22,7 @@ public class ProductController {
     public ProductController(ProductRepository productRepository){
         this.productRepository=productRepository;
     }
+
     @Operation(summary = "Get all products")
     @GetMapping
     public List<Product> getAllProducts(){
@@ -30,9 +34,8 @@ public class ProductController {
     public Product findProductById(@PathVariable Long id ){
 
         return productRepository.findById(id)
-                .orElseThrow(()-> new RuntimeException("product not found"));
-
-
+                .orElseThrow(()-> new ProductNotFoundException("product not found with id: "
+                        + id));
     }
 
     @Operation(summary = "Find product by name")
@@ -50,6 +53,40 @@ public class ProductController {
 
         return productRepository.findBySku(sku);
     }
+
+    @Operation(summary = "Get stock quantity for a product")
+    @GetMapping("/{id}/stock")
+    public Integer getProductStock(@PathVariable Long id){
+
+        Product product=productRepository.findById(id)
+                .orElseThrow(()-> new ProductNotFoundException("Product not found with id: "
+                        + id));
+
+        return product.getStockQuantity();
+    }
+
+    @Operation(summary = "Update stock quantity for a product")
+    @PutMapping("/{id}/stock")
+    public Product updateStock(@PathVariable Long id,
+                               @RequestBody StockUpdateRequest stockUpdate){
+        Product product = productRepository.findById(id)
+                .orElseThrow(()-> new ProductNotFoundException("Product not found with id: "+
+                        id));
+        int newStock= product.getStockQuantity()+ stockUpdate.getQuantityChange();
+
+        if (newStock < 0){
+            throw new InsufficientStockException(
+                    "Cannot reduce bellow 0 for product: "+product.getSku()+
+                            ". Current:"+ product.getStockQuantity()+
+                    ", Requested change: "+ stockUpdate.getQuantityChange());
+
+
+        }
+        product.setStockQuantity(newStock);
+        product.setAvailable(newStock > 0 );
+        return productRepository.save(product);
+    }
+
 
     @Operation(summary = "Create a new product")
     @PostMapping
