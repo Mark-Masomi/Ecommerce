@@ -1,6 +1,6 @@
 # E-commerce Microservices API
 
-A scalable e-commerce backend system built with Spring Boot microservices architecture using Kotlin and Gradle.
+A backend e-commerce system built with Spring Boot microservices architecture using Java and Gradle.
 
 ## Features
 
