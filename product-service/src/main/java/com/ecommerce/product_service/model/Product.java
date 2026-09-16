@@ -1,16 +1,14 @@
 package com.ecommerce.product_service.model;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.math.BigDecimal;
 
 @Entity
 @Table(name="products")
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -26,17 +24,21 @@ public class Product {
     @Column(nullable = false)
     private String name;
 
-    @Column(nullable = true)
+    @Column
     private String description;
 
     @Column(nullable = false)
     private BigDecimal price;
 
-    @Column(name="stock_quantity")
+    @Column(name="stock_quantity", nullable = false)
     private Integer stockQuantity;
 
-    @Column(name="is_available")
-    private boolean isAvailable;
+    @Column(name="is_available",nullable = false)
+    private Boolean available;
+
+    @Version
+    @Column(nullable = false)
+    private Long version;
 
 
 }

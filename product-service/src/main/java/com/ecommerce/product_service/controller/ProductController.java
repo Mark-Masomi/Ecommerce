@@ -45,7 +45,7 @@ public class ProductController {
 
         return productRepository.findByName(name);
     }
-
+/*
     @Operation(summary = "Find product by sku")
     @ResponseStatus(HttpStatus.FOUND)
     @GetMapping("/sku/{sku}")
@@ -53,7 +53,7 @@ public class ProductController {
 
         return productRepository.findBySku(sku);
     }
-
+*/
     @Operation(summary = "Get stock quantity for a product")
     @GetMapping("/{id}/stock")
     public Integer getProductStock(@PathVariable Long id){
@@ -76,7 +76,7 @@ public class ProductController {
 
         if (newStock < 0){
             throw new InsufficientStockException(
-                    "Cannot reduce bellow 0 for product: "+product.getSku()+
+                    "Cannot reduce below 0 for product: "+product.getSku()+
                             ". Current:"+ product.getStockQuantity()+
                     ", Requested change: "+ stockUpdate.getQuantityChange());
 
