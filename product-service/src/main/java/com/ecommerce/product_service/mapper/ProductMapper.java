@@ -26,7 +26,7 @@ public class ProductMapper {
     }
 
     /**
-     *updates fields of a managed entity
+     *Updates fields of a managed entity
      * OBS. Available is not set here - handles of ProductService
      */
     public void updateEntity(Product product, UpdateProductRequest request){
