@@ -64,7 +64,17 @@ public class ProductServiceImpl implements ProductService{
     @Override
     @Transactional
     public ProductResponse createProduct(CreateProductRequest request) {
-        return null;
+       if (productRepository.existsBySku(request.getSku())){
+           throw new ProductAlreadyExistsException
+                   ("Product already exists with sku: " + request.getSku());
+       }
+
+       Product product = productMapper.toEntity(request);
+       recalculateAvailability(product);
+
+       Product saved =productRepository.save(product);
+
+        return productMapper.toResponse(saved);
     }
 
     @Override
@@ -86,7 +96,16 @@ public class ProductServiceImpl implements ProductService{
     // DOMAIN / HELPERS
     // ==========================================================
 
+    /**
+     * Business rule: a product is available only when the stock quantity is > 0.
+     * Domain logic belong in the service layer, not in the mapper
+     */
 
+    private void recalculateAvailability(Product product){
+        boolean available = product.getStockQuantity() != null
+                && product.getStockQuantity() > 0;
+        product.setAvailable(available);
+    }
 
 
     private Product findProductOrThrow(Long id){
