@@ -78,8 +78,14 @@ public class ProductServiceImpl implements ProductService{
     }
 
     @Override
+    @Transactional
     public ProductResponse updateProduct(Long id, UpdateProductRequest request) {
-        return null;
+        Product product= findProductOrThrow(id);
+
+        productMapper.updateEntity(product,request);
+        recalculateAvailability(product);
+
+        return productMapper.toResponse(product);
     }
 
     @Override
