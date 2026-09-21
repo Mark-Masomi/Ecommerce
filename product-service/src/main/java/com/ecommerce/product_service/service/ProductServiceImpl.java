@@ -4,6 +4,7 @@ import com.ecommerce.product_service.dto.CreateProductRequest;
 import com.ecommerce.product_service.dto.ProductResponse;
 import com.ecommerce.product_service.dto.StockUpdateRequest;
 import com.ecommerce.product_service.dto.UpdateProductRequest;
+import com.ecommerce.product_service.exception.InsufficientStockException;
 import com.ecommerce.product_service.exception.ProductAlreadyExistsException;
 import com.ecommerce.product_service.exception.ProductNotFoundException;
 import com.ecommerce.product_service.mapper.ProductMapper;
@@ -89,8 +90,29 @@ public class ProductServiceImpl implements ProductService{
     }
 
     @Override
+    @Transactional
     public ProductResponse updateStock(Long id, StockUpdateRequest request) {
-        return null;
+        Product product=findProductOrThrow(id);
+
+        int newStock = product.getStockQuantity()+request.getQuantityChange();
+
+        if (newStock < 0){
+            throw new InsufficientStockException
+                    ("Cannot reduce stock below 0 for product: " +product.getSku()
+                            +". Current: " + product.getStockQuantity()
+                            +", Requested change: " + request.getQuantityChange()
+                    );
+        }
+
+        product.setStockQuantity(newStock);
+        recalculateAvailability(product);
+
+        // Dirty checking + @Version -> optimistic locking.
+        // In case of a concurrent conflict, Spring throws
+        // ObjectOptimisticLockingFailureException,
+        // which GlobalExceptionHandler maps to 409 CONFLICT.
+
+        return productMapper.toResponse(product);
     }
 
     @Override
