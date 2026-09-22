@@ -1,10 +1,12 @@
 package com.ecommerce.product_service.controller;
 
+import com.ecommerce.product_service.dto.ProductResponse;
 import com.ecommerce.product_service.dto.StockUpdateRequest;
 import com.ecommerce.product_service.exception.InsufficientStockException;
 import com.ecommerce.product_service.exception.ProductNotFoundException;
 import com.ecommerce.product_service.model.Product;
 import com.ecommerce.product_service.repository.ProductRepository;
+import com.ecommerce.product_service.service.ProductService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
@@ -17,25 +19,24 @@ import java.util.List;
 @Tag(name="Product Controller", description="Operations related to products")
 public class ProductController {
 
-    private final ProductRepository productRepository;
+    private final ProductService productService;
 
-    public ProductController(ProductRepository productRepository){
-        this.productRepository=productRepository;
+    public ProductController(ProductService productService){
+        this.productService = productService;
+
     }
 
     @Operation(summary = "Get all products")
     @GetMapping
-    public List<Product> getAllProducts(){
-        return productRepository.findAll();
+    public List<ProductResponse> getAllProducts(){
+        return productService.getAllProducts();
     }
 
-    @Operation(summary = "Find a specific product")
+    @Operation(summary = "Find a specific product by id")
     @GetMapping("/{id}")
-    public Product findProductById(@PathVariable Long id ){
+    public ProductResponse getProductById(@PathVariable Long id ){
 
-        return productRepository.findById(id)
-                .orElseThrow(()-> new ProductNotFoundException("product not found with id: "
-                        + id));
+        return productService.getProductById(id);
     }
 
     @Operation(summary = "Find product by name")
