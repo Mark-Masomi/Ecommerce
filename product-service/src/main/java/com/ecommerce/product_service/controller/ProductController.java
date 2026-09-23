@@ -38,7 +38,7 @@ public class ProductController {
 
         return productService.getProductById(id);
     }
-
+/*
     @Operation(summary = "Find product by name")
     @ResponseStatus(HttpStatus.FOUND)
     @GetMapping("/name/{name}")
@@ -46,15 +46,16 @@ public class ProductController {
 
         return productRepository.findByName(name);
     }
-/*
-    @Operation(summary = "Find product by sku")
-    @ResponseStatus(HttpStatus.FOUND)
-    @GetMapping("/sku/{sku}")
-    public Product findProductBySku (@PathVariable String sku){
 
-        return productRepository.findBySku(sku);
+ */
+
+    @Operation(summary = "Find product by sku")
+    @GetMapping("/sku/{sku}")
+    public ProductResponse getProductBySku (@PathVariable String sku){
+
+        return productService.getProductBySku(sku);
     }
-*/
+
     @Operation(summary = "Get stock quantity for a product")
     @GetMapping("/{id}/stock")
     public Integer getProductStock(@PathVariable Long id){
