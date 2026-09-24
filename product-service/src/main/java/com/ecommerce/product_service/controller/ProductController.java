@@ -58,13 +58,8 @@ public class ProductController {
 
     @Operation(summary = "Get stock quantity for a product")
     @GetMapping("/{id}/stock")
-    public Integer getProductStock(@PathVariable Long id){
-
-        Product product=productRepository.findById(id)
-                .orElseThrow(()-> new ProductNotFoundException("Product not found with id: "
-                        + id));
-
-        return product.getStockQuantity();
+    public Integer getStock(@PathVariable Long id){
+        return productService.getStock(id);
     }
 
     @Operation(summary = "Update stock quantity for a product")
