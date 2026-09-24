@@ -77,30 +77,13 @@ public class ProductController {
     }
 
 
-    /*
     @Operation(summary = "Update stock quantity for a product")
     @PutMapping("/{id}/stock")
-    public Product updateStock(@PathVariable Long id,
-                               @RequestBody StockUpdateRequest stockUpdate){
-        Product product = productRepository.findById(id)
-                .orElseThrow(()-> new ProductNotFoundException("Product not found with id: "+
-                        id));
-        int newStock= product.getStockQuantity()+ stockUpdate.getQuantityChange();
+    public ProductResponse updateStock(@PathVariable Long id,
+                               @Valid @RequestBody StockUpdateRequest request){
 
-        if (newStock < 0){
-            throw new InsufficientStockException(
-                    "Cannot reduce below 0 for product: "+product.getSku()+
-                            ". Current:"+ product.getStockQuantity()+
-                    ", Requested change: "+ stockUpdate.getQuantityChange());
-
-
-        }
-        product.setStockQuantity(newStock);
-        product.setAvailable(newStock > 0 );
-        return productRepository.save(product);
+        return productService.updateStock(id,request);
     }
-
-*/
 
 
     @Operation(summary = "Delete a product")
