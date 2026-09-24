@@ -3,6 +3,7 @@ package com.ecommerce.product_service.controller;
 import com.ecommerce.product_service.dto.CreateProductRequest;
 import com.ecommerce.product_service.dto.ProductResponse;
 import com.ecommerce.product_service.dto.StockUpdateRequest;
+import com.ecommerce.product_service.dto.UpdateProductRequest;
 import com.ecommerce.product_service.exception.InsufficientStockException;
 import com.ecommerce.product_service.exception.ProductNotFoundException;
 import com.ecommerce.product_service.model.Product;
@@ -10,6 +11,7 @@ import com.ecommerce.product_service.repository.ProductRepository;
 import com.ecommerce.product_service.service.ProductService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -65,6 +67,16 @@ public class ProductController {
     }
 
 
+    @Operation(summary = "Update an existing product")
+    @PutMapping("/{id}")
+    public ProductResponse updateProduct(@PathVariable Long id, @Valid @RequestBody UpdateProductRequest request){
+
+
+        return productService.updateProduct(id,request);
+
+    }
+
+
     /*
     @Operation(summary = "Update stock quantity for a product")
     @PutMapping("/{id}/stock")
@@ -90,18 +102,6 @@ public class ProductController {
 
 */
 
-    @Operation(summary = "Update a existing product")
-    @PutMapping("/{id}")
-    public Product updateProduct(@PathVariable Long id,@RequestBody Product productDetails){
-        Product product = productRepository.findById(id)
-                .orElseThrow(()-> new RuntimeException("product not found"));
-
-        product.setName(productDetails.getName());
-        product.setPrice(productDetails.getPrice());
-
-        return productRepository.save(product);
-        
-    }
 
     @Operation(summary = "Delete a product")
     @DeleteMapping("/delete/{id}")
