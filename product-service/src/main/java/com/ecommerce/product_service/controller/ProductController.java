@@ -1,5 +1,6 @@
 package com.ecommerce.product_service.controller;
 
+import com.ecommerce.product_service.dto.CreateProductRequest;
 import com.ecommerce.product_service.dto.ProductResponse;
 import com.ecommerce.product_service.dto.StockUpdateRequest;
 import com.ecommerce.product_service.exception.InsufficientStockException;
@@ -38,16 +39,7 @@ public class ProductController {
 
         return productService.getProductById(id);
     }
-/*
-    @Operation(summary = "Find product by name")
-    @ResponseStatus(HttpStatus.FOUND)
-    @GetMapping("/name/{name}")
-    public Product findProductByName(@PathVariable String name ){
 
-        return productRepository.findByName(name);
-    }
-
- */
 
     @Operation(summary = "Find product by sku")
     @GetMapping("/sku/{sku}")
@@ -56,12 +48,24 @@ public class ProductController {
         return productService.getProductBySku(sku);
     }
 
+
     @Operation(summary = "Get stock quantity for a product")
     @GetMapping("/{id}/stock")
     public Integer getStock(@PathVariable Long id){
         return productService.getStock(id);
     }
 
+
+    @Operation(summary = "Create a new product")
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    public ProductResponse createProduct(@RequestBody CreateProductRequest request ){
+
+        return productService.createProduct(request);
+    }
+
+
+    /*
     @Operation(summary = "Update stock quantity for a product")
     @PutMapping("/{id}/stock")
     public Product updateStock(@PathVariable Long id,
@@ -84,14 +88,7 @@ public class ProductController {
         return productRepository.save(product);
     }
 
-
-    @Operation(summary = "Create a new product")
-    @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public Product createProduct(@RequestBody Product product ){
-
-        return productRepository.save(product);
-    }
+*/
 
     @Operation(summary = "Update a existing product")
     @PutMapping("/{id}")
