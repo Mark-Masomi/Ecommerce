@@ -1,9 +1,17 @@
 package com.ecommerce.product_service.controller;
 
+import com.ecommerce.product_service.dto.CreateProductRequest;
+import com.ecommerce.product_service.dto.ProductResponse;
+import com.ecommerce.product_service.dto.StockUpdateRequest;
+import com.ecommerce.product_service.dto.UpdateProductRequest;
+import com.ecommerce.product_service.exception.InsufficientStockException;
+import com.ecommerce.product_service.exception.ProductNotFoundException;
 import com.ecommerce.product_service.model.Product;
 import com.ecommerce.product_service.repository.ProductRepository;
+import com.ecommerce.product_service.service.ProductService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,72 +22,77 @@ import java.util.List;
 @Tag(name="Product Controller", description="Operations related to products")
 public class ProductController {
 
-    private final ProductRepository productRepository;
+    private final ProductService productService;
 
-    public ProductController(ProductRepository productRepository){
-        this.productRepository=productRepository;
+    public ProductController(ProductService productService){
+        this.productService = productService;
+
     }
+
     @Operation(summary = "Get all products")
     @GetMapping
-    public List<Product> getAllProducts(){
-        return productRepository.findAll();
+    public List<ProductResponse> getAllProducts(){
+        return productService.getAllProducts();
     }
 
-    @Operation(summary = "Find a specific product")
+    @Operation(summary = "Find a specific product by id")
     @GetMapping("/{id}")
-    public Product findProductById(@PathVariable Long id ){
+    public ProductResponse getProductById(@PathVariable Long id ){
 
-        return productRepository.findById(id)
-                .orElseThrow(()-> new RuntimeException("product not found"));
-
-
+        return productService.getProductById(id);
     }
 
-    @Operation(summary = "Find product by name")
-    @ResponseStatus(HttpStatus.FOUND)
-    @GetMapping("/name/{name}")
-    public Product findProductByName(@PathVariable String name ){
-
-        return productRepository.findByName(name);
-    }
 
     @Operation(summary = "Find product by sku")
-    @ResponseStatus(HttpStatus.FOUND)
     @GetMapping("/sku/{sku}")
-    public Product findProductBySku (@PathVariable String sku){
+    public ProductResponse getProductBySku (@PathVariable String sku){
 
-        return productRepository.findBySku(sku);
+        return productService.getProductBySku(sku);
     }
+
+
+    @Operation(summary = "Get stock quantity for a product")
+    @GetMapping("/{id}/stock")
+    public Integer getStock(@PathVariable Long id){
+        return productService.getStock(id);
+    }
+
 
     @Operation(summary = "Create a new product")
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Product createProduct(@RequestBody Product product ){
+    public ProductResponse createProduct(@RequestBody CreateProductRequest request ){
 
-        return productRepository.save(product);
+        return productService.createProduct(request);
     }
 
-    @Operation(summary = "Update a existing product")
+
+    @Operation(summary = "Update an existing product")
     @PutMapping("/{id}")
-    public Product updateProduct(@PathVariable Long id,@RequestBody Product productDetails){
-        Product product = productRepository.findById(id)
-                .orElseThrow(()-> new RuntimeException("product not found"));
+    public ProductResponse updateProduct(@PathVariable Long id, @Valid @RequestBody UpdateProductRequest request){
 
-        product.setName(productDetails.getName());
-        product.setPrice(productDetails.getPrice());
 
-        return productRepository.save(product);
-        
+        return productService.updateProduct(id,request);
+
     }
+
+
+    @Operation(summary = "Update stock quantity for a product")
+    @PutMapping("/{id}/stock")
+    public ProductResponse updateStock(@PathVariable Long id,
+                               @Valid @RequestBody StockUpdateRequest request){
+
+        return productService.updateStock(id,request);
+    }
+
 
     @Operation(summary = "Delete a product")
-    @DeleteMapping("/delete/{id}")
+    @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteProduct(@PathVariable Long id){
 
-        productRepository.deleteById(id);
+        productService.deleteProduct(id);
     }
-
 
 
 }
