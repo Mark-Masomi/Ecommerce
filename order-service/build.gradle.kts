@@ -26,18 +26,34 @@ repositories {
 extra["springCloudVersion"] = "2024.0.1"
 
 dependencies {
+	//Spring Boot
 	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
 	implementation("org.springframework.boot:spring-boot-starter-web")
-	implementation("org.springframework.cloud:spring-cloud-starter-circuitbreaker-resilience4j")
-	implementation("org.springframework.cloud:spring-cloud-starter-netflix-eureka-client")
+	implementation("org.springframework.boot:spring-boot-starter-validation")
+	implementation("org.springframework.boot:spring-boot-starter-actuator")
+
+	//Spring Cloud
 	implementation("org.springframework.cloud:spring-cloud-starter-openfeign")
+	implementation("org.springframework.cloud:spring-cloud-starter-netflix-eureka-client")
+
+	//Resilience4j
+	implementation("io.github.resilience4j:resilience4j-spring-boot3")
+	implementation("org.springframework.cloud:spring-cloud-starter-circuitbreaker-resilience4j")
+
+	//Spring Retry
+	implementation("org.springframework.retry:spring-retry")
+
+	//Lombok
 	compileOnly("org.projectlombok:lombok")
-	runtimeOnly("com.h2database:h2")
 	annotationProcessor("org.projectlombok:lombok")
+
+	//DB
+	runtimeOnly("com.h2database:h2")
+
+	//Test
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-	implementation("io.github.resilience4j:resilience4j-spring-boot3")
-	implementation("org.springframework.boot:spring-boot-starter-validation")
+
 }
 
 dependencyManagement {

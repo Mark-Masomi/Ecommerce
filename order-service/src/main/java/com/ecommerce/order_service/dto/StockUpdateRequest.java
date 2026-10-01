@@ -1,5 +1,6 @@
 package com.ecommerce.order_service.dto;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -8,7 +9,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class StockUpdateRequest {
-
+    @NotNull(message = "Quantity change is required")
     private Integer quantityChange; //Positive add, negative subtract
 
 }
