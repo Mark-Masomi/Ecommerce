@@ -78,7 +78,7 @@ public class OrderServiceImpl implements OrderService {
      * If all retries are exhausted, the original error is thrown
      * and caught by the Circuit Breaker.
      */
-    @Retry(name = "stockUpdateRestry",fallbackMethod = "stockUpdateFallback")
+    @Retry(name = "stockUpdateRetry",fallbackMethod = "stockUpdateFallback")
     private void updateProductStock(List<OrderItemRequest> items){
         for (OrderItemRequest item:items) {
             try {
