@@ -7,7 +7,9 @@ import com.ecommerce.order_service.model.Order;
 import com.ecommerce.order_service.model.OrderItem;
 import com.ecommerce.order_service.model.OrderStatus;
 import com.ecommerce.order_service.repository.OrderRepository;
+import feign.FeignException;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.retry.annotation.Retry;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.RequiredArgsConstructor;
@@ -43,10 +45,12 @@ public class OrderServiceImpl implements OrderService {
        updateProductStock(orderRequest.getItems());
 
 
-
-
         return mapToOrderResponse(savedOrder);
     }
+
+    // ==========================================================
+    // STOCK VALIDATION
+    // ==========================================================
 
     private void validateStock(List<OrderItemRequest> items){
         for(OrderItemRequest item: items){
@@ -55,25 +59,57 @@ public class OrderServiceImpl implements OrderService {
             if (availableStock == null || availableStock < item.getQuantity()){
 
                 throw new InsufficientStockException("Insufficient stock for product ID: "+ item.getProductId()+
-                        ". Available: " + availableStock+", requsted: "+ item.getQuantity()
+                        ". Available: " + availableStock+
+                        ", requsted: "+ item.getQuantity()
                 );
             }
 
         }
     }
 
+    // ==========================================================
+    // STOCK UPDATE WITH RETRY
+    // ==========================================================
 
+    /**
+     * Updates stock for all items.
+     * If a 409 CONFLICT (optimistic locking in product-service) occurs,
+     * Resilience4j automatically retries up to maxAttempts.
+     * If all retries are exhausted, the original error is thrown
+     * and caught by the Circuit Breaker.
+     */
+    @Retry(name = "stockUpdateRestry",fallbackMethod = "stockUpdateFallback")
     private void updateProductStock(List<OrderItemRequest> items){
         for (OrderItemRequest item:items) {
+            try {
 
-            productServiceClient.updateStock(
-                    item.getProductId(), new StockUpdateRequest(-item.getQuantity())
-            );
+                productServiceClient.updateStock(
+                        item.getProductId(), new StockUpdateRequest(-item.getQuantity())
+                );
+            } catch (FeignException.Conflict ex){
+                log.warn("Conflict when updating stock for product {}: {}",
+                        item.getProductId(),ex.getMessage());
+                throw ex;
+            }catch (FeignException ex){
+                log.error("Failed to update stock for product {}: {}",
+                        item.getProductId(),ex.getMessage());
+                throw ex;
+            }
 
         }
     }
 
-    //
+
+    /**
+     * Fallback when retries are exhausted.
+     * Throw a clear error indicating that the order could not be completed
+     * due to concurrent changes to the stock.
+     */
+
+    //public void stockUpdateFallback(){}
+
+
+
      private Order mapToOrder(OrderRequest request){
         return Order.builder()
                 .orderNumber(UUID.randomUUID().toString())
