@@ -106,7 +106,14 @@ public class OrderServiceImpl implements OrderService {
      * due to concurrent changes to the stock.
      */
 
-    //public void stockUpdateFallback(){}
+    public void stockUpdateFallback(List<OrderItemRequest> items,Throwable t){
+        log.error("Stock update failed after retries: {}", t.getMessage(),t);
+        throw new ServiceUnavailableException(
+                "Could not reserve stock due to concurrent updates. " +
+                        "Please try again."
+        );
+
+    }
 
 
 
@@ -121,8 +128,13 @@ public class OrderServiceImpl implements OrderService {
                 .build();
      }
 
-     //
-    // Mappa listan av OrderItemRequest -> OrderItem (embeddable)
+    // ==========================================================
+    // MAPPING
+    // ==========================================================
+
+
+    //
+    // Map the list of OrderItemRequest -> OrderItem (embeddable)
     private List<OrderItem> mapToOrderItems(List<OrderItemRequest> items) {
         return items.stream()
                 .map(item -> {
