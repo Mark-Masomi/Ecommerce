@@ -116,6 +116,9 @@ public class OrderServiceImpl implements OrderService {
     }
 
 
+    // ==========================================================
+    // MAPPING
+    // ==========================================================
 
      private Order mapToOrder(OrderRequest request){
         return Order.builder()
@@ -128,9 +131,6 @@ public class OrderServiceImpl implements OrderService {
                 .build();
      }
 
-    // ==========================================================
-    // MAPPING
-    // ==========================================================
 
 
     //
@@ -149,8 +149,8 @@ public class OrderServiceImpl implements OrderService {
                 .collect(Collectors.toList());
     }
 
-    //
-    // Beräkna totalpris genom att hämta pris från product-service
+
+    // Calculate the total price by fetching prices from product-service.
     private BigDecimal calculateTotalPrice(List<OrderItemRequest> items) {
         return items.stream()
                 .map(item -> {
@@ -182,9 +182,13 @@ public class OrderServiceImpl implements OrderService {
                 .build();
     }
 
-    // fallback-method for circuit breaker
+    // ==========================================================
+    // CIRCUIT BREAKER FALLBACK
+    // ==========================================================
     public OrderResponse fallBackCreateOrder(OrderRequest orderRequest,Throwable t){
-        throw new ServiceUnavailableException("Order service is temporarily unavailable, please try again later.");
+        log.error("Order creation failed: {}", t.getMessage(), t);
+        throw new ServiceUnavailableException("Order service is temporarily unavailable. " +
+                " please try again later.");
     }
 
 
