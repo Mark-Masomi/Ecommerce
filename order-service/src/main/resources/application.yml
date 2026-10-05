@@ -17,15 +17,42 @@ eureka:
     service-url:
       defaultZone: http://localhost:8761/eureka/
 
+# Feign + CircuitBreaker
 feign:
   circuitbreaker:
     enabled: true
 
-
+# Resilience4j
 resilience4j:
   circuitbreaker:
     instances:
       orderService:
         register-health-indicator: true
         sliding-window-size: 10
+        minimum-number-of-calls: 5
         failure-rate-threshold: 50
+        wait-duration-in-open-state: 10s
+        permitted-number-of-calls-in-half-open-state: 3
+
+retry:
+    instances:
+      stockUpdateRetry:
+        max-attempts: 3
+        wait-duration: 100ms
+        enable-exponential-backoff: true
+        exponential-backoff-multiplier: 2
+        retry-exceptions:
+          - feign.FeignException$Conflict
+        ignore-exceptions:
+          - feign.FeignException$NotFound
+          - com.ecommerce.order_service.exception.InsufficientStockException
+
+timelimiter:
+  instances:
+    orderService:
+      timeout-duration: 5s
+
+logging:
+  level:
+    io.github.resilience4j: DEBUG
+    com.ecommerce.order_service.feign: DEBUG
