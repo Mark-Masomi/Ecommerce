@@ -33,14 +33,12 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-actuator")
 
 	//Spring Cloud
-	implementation("org.springframework.cloud:spring-cloud-starter-openfeign")
 	implementation("org.springframework.cloud:spring-cloud-starter-netflix-eureka-client")
+	implementation("org.springframework.cloud:spring-cloud-starter-openfeign")
 
 	//Resilience4j
 	implementation("io.github.resilience4j:resilience4j-spring-boot3")
 	implementation("org.springframework.cloud:spring-cloud-starter-circuitbreaker-resilience4j")
-
-	//Spring Retry
 	implementation("org.springframework.retry:spring-retry")
 
 	//Lombok
