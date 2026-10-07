@@ -11,7 +11,10 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    public ResponseEntity<Map<String,Object>> handleInsufficientStock(InsufficientStockException ex){
 
+        return buildResponse(HttpStatus.CONFLICT,ex.getMessage());
+    }
 
     private ResponseEntity<Map<String, Object>> buildResponse(HttpStatus status,String message){
         Map<String,Object> body= new HashMap<>();
