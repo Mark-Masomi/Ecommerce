@@ -18,6 +18,11 @@ public class GlobalExceptionHandler {
         return buildResponse(HttpStatus.CONFLICT,ex.getMessage());
     }
 
+    @ExceptionHandler(ServiceUnavailableException.class)
+    public ResponseEntity<Map<String, Object>> handleServiceUnavailable (ServiceUnavailableException ex){
+        return buildResponse(HttpStatus.SERVICE_UNAVAILABLE, ex.getMessage());
+    }
+
     private ResponseEntity<Map<String, Object>> buildResponse(HttpStatus status,String message){
         Map<String,Object> body= new HashMap<>();
         body.put("timestamp",LocalDateTime.now());
