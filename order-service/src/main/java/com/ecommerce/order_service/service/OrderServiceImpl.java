@@ -148,8 +148,16 @@ public class OrderServiceImpl implements OrderService {
     // Map the list of OrderItemRequest -> OrderItem (embeddable)
     private List<OrderItem> mapToOrderItems(List<OrderItemRequest> items) {
         return items.stream()
-                .map(item -> {
-                    ProductDto product = productServiceClient.getProductById(item.getProductId());
+                .map(item ->
+                {
+                    ProductDto product;
+                    try {
+                        product = productServiceClient.getProductById(item.getProductId());
+                    } catch (FeignException.NotFound ex){
+                        throw new ProductNotFoundException(
+                          "Product not found with id : " +item.getProductId()
+                        );
+                    }
                     return OrderItem.builder()
                             .productId(item.getProductId())
                             .sku(product.getSku())
@@ -165,7 +173,14 @@ public class OrderServiceImpl implements OrderService {
     private BigDecimal calculateTotalPrice(List<OrderItemRequest> items) {
         return items.stream()
                 .map(item -> {
-                    ProductDto product = productServiceClient.getProductById(item.getProductId());
+                    ProductDto product;
+                    try {
+                        product = productServiceClient.getProductById(item.getProductId());
+                    }catch (FeignException.NotFound ex){
+                        throw new ProductNotFoundException(
+                                "Product not found with id: " + item.getProductId()
+                        );
+                    }
                     return product.getPrice().multiply(BigDecimal.valueOf(item.getQuantity()));
                 })
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
