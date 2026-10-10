@@ -1,6 +1,7 @@
 package com.ecommerce.order_service.service;
 import com.ecommerce.order_service.dto.*;
 import com.ecommerce.order_service.exeption.InsufficientStockException;
+import com.ecommerce.order_service.exeption.ProductNotFoundException;
 import com.ecommerce.order_service.exeption.ServiceUnavailableException;
 import com.ecommerce.order_service.feign.ProductServiceClient;
 import com.ecommerce.order_service.model.Order;
@@ -55,15 +56,25 @@ public class OrderServiceImpl implements OrderService {
     private void validateStock(List<OrderItemRequest> items){
         for(OrderItemRequest item: items){
 
-            Integer availableStock= productServiceClient.getProductStock(item.getProductId());
-            if (availableStock == null || availableStock < item.getQuantity()){
-
-                throw new InsufficientStockException("Insufficient stock for product ID: "+ item.getProductId()+
-                        ". Available: " + availableStock+
-                        ", requsted: "+ item.getQuantity()
+            Integer availableStock;
+            try {
+                availableStock = productServiceClient.getProductStock(item.getProductId());
+            }
+            catch (FeignException.NotFound ex){
+                throw new ProductNotFoundException(
+                        "Product not found with id : "+item.getProductId()
                 );
             }
 
+            if(availableStock == null || availableStock < item.getQuantity()){
+
+                throw new InsufficientStockException(
+                        "Insufficient stock for product ID: " + item.getProductId()
+                        + ". available: "+ availableStock
+                        +", Requested: " + item.getQuantity()
+                );
+
+            }
         }
     }
 

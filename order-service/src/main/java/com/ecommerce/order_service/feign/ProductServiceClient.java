@@ -14,7 +14,7 @@ public interface ProductServiceClient {
     @GetMapping("/{id}")
     ProductDto getProductById(@PathVariable("id") Long id);
 
-    @GetMapping("/{id}/stock}")
+    @GetMapping("/{id}/stock")
     Integer getProductStock(@PathVariable("id") Long id);
 
     @PutMapping("/{id}/stock")

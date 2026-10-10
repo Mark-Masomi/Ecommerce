@@ -38,6 +38,12 @@ public class GlobalExceptionHandler {
         return buildResponse(HttpStatus.BAD_REQUEST,errors);
     }
 
+    @ExceptionHandler(ProductNotFoundException.class)
+    public ResponseEntity<Map<String , Object>> handleProductNotFound (ProductNotFoundException ex){
+
+        return buildResponse(HttpStatus.NOT_FOUND, ex.getMessage());
+    }
+
     private ResponseEntity<Map<String, Object>> buildResponse(HttpStatus status,String message){
         Map<String,Object> body= new HashMap<>();
         body.put("timestamp",LocalDateTime.now());
