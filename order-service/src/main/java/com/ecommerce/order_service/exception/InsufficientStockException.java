@@ -1,4 +1,4 @@
-package com.ecommerce.order_service.exeption;
+package com.ecommerce.order_service.exception;
 
 public class InsufficientStockException extends RuntimeException {
 
