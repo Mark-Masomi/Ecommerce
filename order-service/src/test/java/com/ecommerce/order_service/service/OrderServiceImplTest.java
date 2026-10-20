@@ -1,6 +1,7 @@
 package com.ecommerce.order_service.service;
 
 import com.ecommerce.order_service.dto.*;
+import com.ecommerce.order_service.exception.InsufficientStockException;
 import com.ecommerce.order_service.feign.ProductServiceClient;
 import com.ecommerce.order_service.model.Order;
 import com.ecommerce.order_service.model.OrderStatus;
@@ -55,7 +56,7 @@ public class OrderServiceImplTest {
     // ==========================================================
 
     @Test
-    @DisplayName("createOrder: ska skapa order och uppdatera lager vid tillräckligt saldo")
+    @DisplayName("createOrder: should create an order and update stock when sufficient inventory is available")
     void createOrder_shouldCreateOrderAndUpdateStock_whenStockIsSufficient() {
         // Arrange
         OrderRequest request = buildOrderRequest(1L, 2);
@@ -89,6 +90,24 @@ public class OrderServiceImplTest {
         verify(orderRepository).save(any(Order.class));
     }
 
+    // ==========================================================
+    // INSUFFICIENT STOCK
+    // ==========================================================
+
+    @Test
+    @DisplayName("createOrder: should throw InsufficientStockException when stock is insufficient")
+    void createOrder_shouldThrow_whenStockIsInsufficient(){
+        OrderRequest request=buildOrderRequest(1L, 9999);
+        when(productServiceClient.getProductStock(1L)).thenReturn(10);
+
+        assertThatThrownBy(()-> orderService.createOrder(request))
+                .isInstanceOf(InsufficientStockException.class)
+                .hasMessageContaining("Insufficient stock")
+                .hasMessageContaining("product ID: 1");
+
+        verify(orderRepository, never()).save(any());
+        verify(productServiceClient, never()).updateStock(anyLong(), any());
+    }
 
     // ==========================================================
     // HELPERS
