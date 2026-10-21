@@ -2,6 +2,7 @@ package com.ecommerce.order_service.service;
 
 import com.ecommerce.order_service.dto.*;
 import com.ecommerce.order_service.exception.InsufficientStockException;
+import com.ecommerce.order_service.exception.ProductNotFoundException;
 import com.ecommerce.order_service.feign.ProductServiceClient;
 import com.ecommerce.order_service.model.Order;
 import com.ecommerce.order_service.model.OrderStatus;
@@ -110,6 +111,23 @@ public class OrderServiceImplTest {
     }
 
     // ==========================================================
+    // PRODUCT NOT FOUND
+    // ==========================================================
+
+    @Test
+    @DisplayName("createOrder: should throw ProductNotFoundException when the product does not exist")
+    void createOrder_shouldTrow_whenProductNotFound(){
+        OrderRequest request=buildOrderRequest(999L,1);
+        when(productServiceClient.getProductStock(999L))
+                .thenThrow(new FeignException.NotFound("not found", dummyRequest(),null,null));
+
+        assertThatThrownBy(()-> orderService.createOrder(request))
+                .isInstanceOf(ProductNotFoundException.class)
+                .hasMessageContaining("Product not found with id : 999");
+        verify(orderRepository, never()).save(any());
+    }
+
+    // ==========================================================
     // HELPERS
     // ==========================================================
 
@@ -122,5 +140,16 @@ public class OrderServiceImplTest {
         request.setCustomerId("cust-123");
         request.setItems(List.of(item));
         return request;
+    }
+
+    private Request dummyRequest(){
+        return Request.create(
+          Request.HttpMethod.GET,
+                "/api/products/999/stock",
+                java.util.Map.of(),
+                null,
+                StandardCharsets.UTF_8,
+                null
+        );
     }
 }
