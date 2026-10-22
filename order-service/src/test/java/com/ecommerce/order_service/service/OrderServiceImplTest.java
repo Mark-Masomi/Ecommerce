@@ -126,6 +126,46 @@ public class OrderServiceImplTest {
                 .hasMessageContaining("Product not found with id : 999");
         verify(orderRepository, never()).save(any());
     }
+    // ==========================================================
+    // MULTIPLE ITEMS
+    // ==========================================================
+
+    @Test
+    @DisplayName("createPrder: should handle multiple items and calculate the total price")
+    void createOrder_shouldHandleMultipleItems(){
+        ProductDto product2=new ProductDto();
+        product2.setSku("SAMSUNG-S24");
+        product2.setPrice(new BigDecimal(9990.00));
+        product2.setStockQuantity(50);
+        product2.setAvailable(true);
+
+        OrderItemRequest item1= new OrderItemRequest();
+        item1.setProductId(1L);
+        item1.setQuantity(2);
+
+        OrderItemRequest item2 = new OrderItemRequest();
+        item2.setProductId(2L);
+        item2.setQuantity(1);
+
+        OrderRequest request =new OrderRequest();
+        request.setCustomerId("cust-123");
+        request.setItems(List.of(item1,item2));
+
+        when(productServiceClient.getProductStock(1L)).thenReturn(100);
+        when(productServiceClient.getProductStock(2L)).thenReturn(50);
+        when(productServiceClient.getProductById(1L)).thenReturn(productDto);
+        when(productServiceClient.getProductById(2L)).thenReturn(product2);
+        when(orderRepository.save(any(Order.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        OrderResponse response=orderService.createOrder(request);
+
+        // 2 * 12990 + 1 * 9990 = 35970
+        assertThat(response.getTotalPrice()).isEqualByComparingTo(new BigDecimal("35970.00"));
+        assertThat(response.getItems()).hasSize(2);
+
+        verify(productServiceClient).updateStock(eq(1L), argThat(r-> r.getQuantityChange() == -2));
+        verify(productServiceClient).updateStock(eq(2L),argThat(r-> r.getQuantityChange() == -1));
+    }
 
     // ==========================================================
     // HELPERS
