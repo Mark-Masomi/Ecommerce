@@ -74,4 +74,27 @@ public class OrderControllerTest {
                 .andExpect(jsonPath("$.items[0].sku").value("IPHONE15-001"))
                 .andExpect(jsonPath("$.items[0].quantity").value(2));
     }
+
+    // ==========================================================
+    // VALIDATION
+    // ==========================================================
+
+    @Test
+    @DisplayName("POST /api/orders: should return 400 when customerId is missing")
+    void createOrder_shouldReturn400_whenCustomerIdMissing()throws Exception{
+
+        String body = objectMapper.writeValueAsString(Map.of(
+                "items", List.of(Map.of("productId" , 1, "quantity" , 2))
+        ));
+
+        mockMvc.perform(post("/api/orders")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(body))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value(org.hamcrest.Matchers.containsString
+                        ("customerId")));
+    }
+
+
+
 }
