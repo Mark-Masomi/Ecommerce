@@ -95,6 +95,22 @@ public class OrderControllerTest {
                         ("customerId")));
     }
 
+    @Test
+    @DisplayName("POST /api/orders: Should return 400 when items are empty ")
+    void createOrder_shouldReturn400_whenItemsEmpty() throws Exception{
+        String body = objectMapper.writeValueAsString(Map.of(
+                "customerId", "cust-123",
+                "items", List.of()
+
+        ));
+
+        mockMvc.perform(post("/api/orders")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(body))
+                .andExpect(status().isBadRequest());
+
+    }
+
 
 
 }
