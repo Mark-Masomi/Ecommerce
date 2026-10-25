@@ -111,6 +111,20 @@ public class OrderControllerTest {
 
     }
 
+    @Test
+    @DisplayName("POST /api/orders: Should return 400 when quantity is 0")
+    void createOrder_shouldReturn400_whenQuantityIsZero ()throws Exception{
+        String body = objectMapper.writeValueAsString(Map.of(
+                "customerId" , "cust-123",
+                "items" , List.of(Map.of("productId", 1, "quantity", 0))
+        ));
+
+        mockMvc.perform(post("/api/orders")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isBadRequest());
+    }
+
 
 
 }
