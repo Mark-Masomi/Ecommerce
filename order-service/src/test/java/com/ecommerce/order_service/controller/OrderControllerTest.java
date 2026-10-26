@@ -2,6 +2,7 @@ package com.ecommerce.order_service.controller;
 
 import com.ecommerce.order_service.dto.OrderItemResponse;
 import com.ecommerce.order_service.dto.OrderResponse;
+import com.ecommerce.order_service.exception.InsufficientStockException;
 import com.ecommerce.order_service.model.OrderStatus;
 import com.ecommerce.order_service.service.OrderService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -125,6 +126,25 @@ public class OrderControllerTest {
                 .andExpect(status().isBadRequest());
     }
 
+    // ==========================================================
+    // DOMAIN ERRORS
+    // ==========================================================
+
+    void createOrder_shouldReturn409_whenInsufficientStock() throws Exception{
+        when(orderService.createOrder(any()))
+                .thenThrow(new InsufficientStockException("Insufficient stock for product ID: 1"));
+        String body = objectMapper.writeValueAsString(Map.of(
+                "customerId" , "cust-123",
+                "items", List.of(Map.of("productId" ,1 , "quantity" ,9999 ))
+        ));
+
+        mockMvc.perform(post("/api/orders")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(body))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.message").value(org.hamcrest.Matchers.containsString("Insuffi" +
+                        "cient stock")));
+    }
 
 
 }
