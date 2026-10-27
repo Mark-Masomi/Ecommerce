@@ -3,6 +3,7 @@ package com.ecommerce.order_service.controller;
 import com.ecommerce.order_service.dto.OrderItemResponse;
 import com.ecommerce.order_service.dto.OrderResponse;
 import com.ecommerce.order_service.exception.InsufficientStockException;
+import com.ecommerce.order_service.exception.ProductNotFoundException;
 import com.ecommerce.order_service.model.OrderStatus;
 import com.ecommerce.order_service.service.OrderService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -145,6 +146,26 @@ public class OrderControllerTest {
                 .andExpect(jsonPath("$.message").value(org.hamcrest.Matchers.containsString("Insuffi" +
                         "cient stock")));
     }
+
+    @Test
+    @DisplayName("POST /api/orders: Should return 404 when product doesnt exist")
+    void createOrder_shouldReturn404_whenProductNotFound()throws Exception {
+        when(orderService.createOrder(any()))
+                .thenThrow(new ProductNotFoundException("Product not found with id : 999"));
+
+        String body = objectMapper.writeValueAsString(Map.of(
+                "customerId", "cust-123",
+                "items", List.of(Map.of("productId" , 999 , "quantity" , 1))
+        ));
+
+        mockMvc.perform(post("/api/orders")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(body))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").value(org.hamcrest.Matchers.containsString("Product " +
+                        "not found")));
+    }
+
 
 
 }
