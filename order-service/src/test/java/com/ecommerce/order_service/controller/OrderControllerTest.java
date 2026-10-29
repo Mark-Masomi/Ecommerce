@@ -4,6 +4,7 @@ import com.ecommerce.order_service.dto.OrderItemResponse;
 import com.ecommerce.order_service.dto.OrderResponse;
 import com.ecommerce.order_service.exception.InsufficientStockException;
 import com.ecommerce.order_service.exception.ProductNotFoundException;
+import com.ecommerce.order_service.exception.ServiceUnavailableException;
 import com.ecommerce.order_service.model.OrderStatus;
 import com.ecommerce.order_service.service.OrderService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -164,6 +165,26 @@ public class OrderControllerTest {
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.message").value(org.hamcrest.Matchers.containsString("Product " +
                         "not found")));
+    }
+
+    @Test
+    @DisplayName("POST /api/orders: Should return 503 when service unavailable")
+    void createOrder_shouldReturn503_whenServiceUnavailable() throws Exception{
+        when(orderService.createOrder(any()))
+                .thenThrow(new ServiceUnavailableException("Order service is temporarily " +
+                        "unavailable"));
+
+        String body = objectMapper.writeValueAsString(Map.of(
+                "customerId" , "cust-123",
+                "items" , List.of(Map.of("productId",1,"quantity",1))
+        ));
+
+        mockMvc.perform(post("/api/orders")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(body))
+                .andExpect(status().isServiceUnavailable())
+                .andExpect(jsonPath("$.message").value(org.hamcrest.Matchers
+                        .containsString("unavailable")));
     }
 
 
