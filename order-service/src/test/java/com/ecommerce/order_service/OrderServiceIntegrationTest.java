@@ -4,6 +4,7 @@ import com.ecommerce.order_service.dto.OrderItemRequest;
 import com.ecommerce.order_service.dto.OrderRequest;
 import com.ecommerce.order_service.dto.OrderResponse;
 import com.ecommerce.order_service.dto.ProductDto;
+import com.ecommerce.order_service.exception.InsufficientStockException;
 import com.ecommerce.order_service.feign.ProductServiceClient;
 import com.ecommerce.order_service.repository.OrderRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -70,6 +71,25 @@ public class OrderServiceIntegrationTest {
         //Verify that order actually exists in database
         assertThat(orderRepository.findAll()).hasSize(1);
         assertThat(orderRepository.findAll().get(0).getCustomerId()).isEqualTo("cust-123");
+    }
+
+    @Test
+    @DisplayName("Integration: insufficient stock order should not be saved")
+    void createOrder_shouldNotPersist_whenStockInsufficient(){
+        when(productServiceClient.getProductStock(1L)).thenReturn(1);
+
+        OrderItemRequest item = new OrderItemRequest();
+        item.setProductId(1L);
+        item.setQuantity(9999);
+
+        OrderRequest request = new OrderRequest();
+        request.setCustomerId("cust-123");
+        request.setItems(List.of(item));
+
+        assertThatThrownBy(() -> orderService.createOrder(request))
+                .isInstanceOf(InsufficientStockException.class);
+
+        assertThat(orderRepository.findAll()).isEmpty();
     }
 
 }
