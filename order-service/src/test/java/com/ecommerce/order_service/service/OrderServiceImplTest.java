@@ -1,0 +1,195 @@
+package com.ecommerce.order_service.service;
+
+import com.ecommerce.order_service.dto.*;
+import com.ecommerce.order_service.exception.InsufficientStockException;
+import com.ecommerce.order_service.exception.ProductNotFoundException;
+import com.ecommerce.order_service.feign.ProductServiceClient;
+import com.ecommerce.order_service.model.Order;
+import com.ecommerce.order_service.model.OrderStatus;
+import com.ecommerce.order_service.repository.OrderRepository;
+import feign.FeignException;
+import feign.Request;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.*;
+
+@ExtendWith(MockitoExtension.class)
+public class OrderServiceImplTest {
+    @Mock
+    private OrderRepository orderRepository;
+
+    @Mock
+    private ProductServiceClient productServiceClient;
+
+    @InjectMocks
+    private OrderServiceImpl orderService;
+
+    private ProductDto productDto;
+
+    @BeforeEach
+    void setUp() {
+        productDto = new ProductDto();
+        productDto.setId(1L);
+        productDto.setSku("IPHONE15-001");
+        productDto.setName("iPhone 15");
+        productDto.setPrice(new BigDecimal("12990.00"));
+        productDto.setStockQuantity(100);
+        productDto.setAvailable(true);
+    }
+
+    // ==========================================================
+    // HAPPY PATH
+    // ==========================================================
+
+    @Test
+    @DisplayName("createOrder: should create an order and update stock when sufficient inventory is available")
+    void createOrder_shouldCreateOrderAndUpdateStock_whenStockIsSufficient() {
+        // Arrange
+        OrderRequest request = buildOrderRequest(1L, 2);
+        when(productServiceClient.getProductStock(1L)).thenReturn(100);
+        when(productServiceClient.getProductById(1L)).thenReturn(productDto);
+        when(orderRepository.save(any(Order.class))).thenAnswer(inv -> {
+            Order o = inv.getArgument(0);
+            o.setId(1L);
+            return o;
+        });
+
+        // Act
+        OrderResponse response = orderService.createOrder(request);
+
+        // Assert – response
+        assertThat(response).isNotNull();
+        assertThat(response.getOrderNumber()).isNotBlank();
+        assertThat(response.getStatus()).isEqualTo(OrderStatus.PENDING);
+        assertThat(response.getTotalPrice()).isEqualByComparingTo(new BigDecimal("25980.00"));
+        assertThat(response.getItems()).hasSize(1);
+        assertThat(response.getItems().get(0).getSku()).isEqualTo("IPHONE15-001");
+        assertThat(response.getItems().get(0).getQuantity()).isEqualTo(2);
+
+        // Assert – stock decreases with 2
+        ArgumentCaptor<StockUpdateRequest> stockCaptor =
+                ArgumentCaptor.forClass(StockUpdateRequest.class);
+        verify(productServiceClient).updateStock(eq(1L), stockCaptor.capture());
+        assertThat(stockCaptor.getValue().getQuantityChange()).isEqualTo(-2);
+
+        // Assert – order  is saved
+        verify(orderRepository).save(any(Order.class));
+    }
+
+    // ==========================================================
+    // INSUFFICIENT STOCK
+    // ==========================================================
+
+    @Test
+    @DisplayName("createOrder: should throw InsufficientStockException when stock is insufficient")
+    void createOrder_shouldThrow_whenStockIsInsufficient(){
+        OrderRequest request=buildOrderRequest(1L, 9999);
+        when(productServiceClient.getProductStock(1L)).thenReturn(10);
+
+        assertThatThrownBy(()-> orderService.createOrder(request))
+                .isInstanceOf(InsufficientStockException.class)
+                .hasMessageContaining("Insufficient stock")
+                .hasMessageContaining("product ID: 1");
+
+        verify(orderRepository, never()).save(any());
+        verify(productServiceClient, never()).updateStock(anyLong(), any());
+    }
+
+    // ==========================================================
+    // PRODUCT NOT FOUND
+    // ==========================================================
+
+    @Test
+    @DisplayName("createOrder: should throw ProductNotFoundException when the product does not exist")
+    void createOrder_shouldTrow_whenProductNotFound(){
+        OrderRequest request=buildOrderRequest(999L,1);
+        when(productServiceClient.getProductStock(999L))
+                .thenThrow(new FeignException.NotFound("not found", dummyRequest(),null,null));
+
+        assertThatThrownBy(()-> orderService.createOrder(request))
+                .isInstanceOf(ProductNotFoundException.class)
+                .hasMessageContaining("Product not found with id : 999");
+        verify(orderRepository, never()).save(any());
+    }
+    // ==========================================================
+    // MULTIPLE ITEMS
+    // ==========================================================
+
+    @Test
+    @DisplayName("createPrder: should handle multiple items and calculate the total price")
+    void createOrder_shouldHandleMultipleItems(){
+        ProductDto product2=new ProductDto();
+        product2.setSku("SAMSUNG-S24");
+        product2.setPrice(new BigDecimal(9990.00));
+        product2.setStockQuantity(50);
+        product2.setAvailable(true);
+
+        OrderItemRequest item1= new OrderItemRequest();
+        item1.setProductId(1L);
+        item1.setQuantity(2);
+
+        OrderItemRequest item2 = new OrderItemRequest();
+        item2.setProductId(2L);
+        item2.setQuantity(1);
+
+        OrderRequest request =new OrderRequest();
+        request.setCustomerId("cust-123");
+        request.setItems(List.of(item1,item2));
+
+        when(productServiceClient.getProductStock(1L)).thenReturn(100);
+        when(productServiceClient.getProductStock(2L)).thenReturn(50);
+        when(productServiceClient.getProductById(1L)).thenReturn(productDto);
+        when(productServiceClient.getProductById(2L)).thenReturn(product2);
+        when(orderRepository.save(any(Order.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        OrderResponse response=orderService.createOrder(request);
+
+        // 2 * 12990 + 1 * 9990 = 35970
+        assertThat(response.getTotalPrice()).isEqualByComparingTo(new BigDecimal("35970.00"));
+        assertThat(response.getItems()).hasSize(2);
+
+        verify(productServiceClient).updateStock(eq(1L), argThat(r-> r.getQuantityChange() == -2));
+        verify(productServiceClient).updateStock(eq(2L),argThat(r-> r.getQuantityChange() == -1));
+    }
+
+    // ==========================================================
+    // HELPERS
+    // ==========================================================
+
+    private OrderRequest buildOrderRequest(Long productId, int quantity) {
+        OrderItemRequest item = new OrderItemRequest();
+        item.setProductId(productId);
+        item.setQuantity(quantity);
+
+        OrderRequest request = new OrderRequest();
+        request.setCustomerId("cust-123");
+        request.setItems(List.of(item));
+        return request;
+    }
+
+    private Request dummyRequest(){
+        return Request.create(
+          Request.HttpMethod.GET,
+                "/api/products/999/stock",
+                java.util.Map.of(),
+                null,
+                StandardCharsets.UTF_8,
+                null
+        );
+    }
+}
