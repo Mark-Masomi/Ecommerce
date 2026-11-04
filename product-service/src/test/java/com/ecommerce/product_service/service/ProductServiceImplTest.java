@@ -3,6 +3,7 @@ package com.ecommerce.product_service.service;
 
 import com.ecommerce.product_service.dto.CreateProductRequest;
 import com.ecommerce.product_service.dto.ProductResponse;
+import com.ecommerce.product_service.exception.ProductAlreadyExistsException;
 import com.ecommerce.product_service.mapper.ProductMapper;
 import com.ecommerce.product_service.model.Product;
 import com.ecommerce.product_service.repository.ProductRepository;
@@ -102,5 +103,24 @@ public class ProductServiceImplTest {
         verify(productRepository).save(any(Product.class));
     }
 
+    @Test
+    @DisplayName("createProduct: should throw ProductAlreadyExistsException on duplicate sku")
+    void createProduct_shouldThrow_whenSkuExists(){
+        CreateProductRequest request = CreateProductRequest.builder()
+                .sku("IPHONE15-001")
+                .name("iphone 15")
+                .price(new BigDecimal("12990.00"))
+                .stockQuantity(100)
+                .build();
+
+        when(productRepository.existsBySku("IPHONE15-001")).thenReturn(true);
+
+        assertThatThrownBy(() -> productService.createProduct(request))
+                .isInstanceOf(ProductAlreadyExistsException.class)
+                .hasMessageContaining("IPHONE15-001");
+
+        verify(productRepository , never()).save(any());
+        verify(productMapper, never()).toEntity(any());
+    }
 
 }
