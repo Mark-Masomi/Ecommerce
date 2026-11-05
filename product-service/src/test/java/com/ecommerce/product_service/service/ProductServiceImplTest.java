@@ -123,4 +123,37 @@ public class ProductServiceImplTest {
         verify(productMapper, never()).toEntity(any());
     }
 
+    @Test
+    @DisplayName("createProduct: service must set available (mapper does not)")
+    void createProduct_shouldSetAvailableInService (){
+        CreateProductRequest request = CreateProductRequest.builder()
+                .sku("IPHONE15-001")
+                .name("iphone 15")
+                .price(new BigDecimal("12990.00"))
+                .stockQuantity(5)
+                .build();
+
+        //Mapper returns entity without available - this is the mappers contract
+        Product mappedEntity = Product.builder()
+                .sku("IPHONE15-001")
+                .name("iphone 15")
+                .price(new BigDecimal("12990.00"))
+                .stockQuantity(5)
+                .available(null)
+                .build();
+
+        when(productRepository.existsBySku("IPHONE15-001")).thenReturn(false);
+        when(productMapper.toEntity(request)).thenReturn(mappedEntity);
+        when(productRepository.save(any(Product.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(productMapper.toResponse(any(Product.class))).thenReturn(productResponse);
+
+        productService.createProduct(request);
+
+        ArgumentCaptor<Product> captor = ArgumentCaptor.forClass(Product.class);
+        verify(productRepository).save(captor.capture());
+        assertThat(captor.getValue().getAvailable())
+                .as("service must calculate available = stockQuantity > 0")
+                .isTrue();
+    }
+
 }
