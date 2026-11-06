@@ -156,4 +156,33 @@ public class ProductServiceImplTest {
                 .isTrue();
     }
 
+    @Test
+    @DisplayName("createProduct: available should be false when stockQuantity is zero")
+    void createProduct_shouldSetAvailableFalse_whenStockIsZero () {
+        CreateProductRequest request = CreateProductRequest.builder()
+                .sku("OUT-OF-STOCK")
+                .name("Out of stock")
+                .price(new BigDecimal("10.00"))
+                .stockQuantity(0)
+                .build();
+
+        Product mappedEntity = Product.builder()
+                .sku("OUT-OF-STOCK")
+                .name("Out of stock")
+                .price(new BigDecimal("10.00"))
+                .stockQuantity(0)
+                .build();
+
+        when(productRepository.existsBySku("OUT-OF-STOCK")).thenReturn(false);
+        when(productMapper.toEntity(request)).thenReturn(mappedEntity);
+        when(productRepository.save(any(Product.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(productMapper.toResponse(any(Product.class))).thenReturn(productResponse);
+
+        productService.createProduct(request);
+
+        ArgumentCaptor<Product> captor = ArgumentCaptor.forClass(Product.class);
+        verify(productRepository).save(captor.capture());
+        assertThat(captor.getValue().getAvailable()).isFalse();
+    }
+
 }
