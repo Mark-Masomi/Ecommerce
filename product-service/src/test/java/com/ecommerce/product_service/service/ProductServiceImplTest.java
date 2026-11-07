@@ -185,4 +185,19 @@ public class ProductServiceImplTest {
         assertThat(captor.getValue().getAvailable()).isFalse();
     }
 
+    // ==========================================================
+    // READ
+    // ==========================================================
+
+    @Test
+    @DisplayName("getProductById: should return response when product exists")
+    void getProductById_shouldReturn_whenFound () {
+        when(productRepository.findById(1L)).thenReturn(Optional.of(product));
+        when(productMapper.toResponse(product)).thenReturn(productResponse);
+
+        ProductResponse result = productService.getProductById(1L);
+
+        assertThat(result).isEqualTo(productResponse);
+    }
+
 }
