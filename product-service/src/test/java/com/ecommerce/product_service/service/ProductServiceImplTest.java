@@ -4,6 +4,7 @@ package com.ecommerce.product_service.service;
 import com.ecommerce.product_service.dto.CreateProductRequest;
 import com.ecommerce.product_service.dto.ProductResponse;
 import com.ecommerce.product_service.exception.ProductAlreadyExistsException;
+import com.ecommerce.product_service.exception.ProductNotFoundException;
 import com.ecommerce.product_service.mapper.ProductMapper;
 import com.ecommerce.product_service.model.Product;
 import com.ecommerce.product_service.repository.ProductRepository;
@@ -198,6 +199,16 @@ public class ProductServiceImplTest {
         ProductResponse result = productService.getProductById(1L);
 
         assertThat(result).isEqualTo(productResponse);
+    }
+
+    @Test
+    @DisplayName("getProductById: should throw ProductNotFoundException when missing")
+    void getProductById_shouldThrow_whenNotFound(){
+        when(productRepository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> productService.getProductById(99L))
+                .isInstanceOf(ProductNotFoundException.class)
+                .hasMessageContaining("id: 99");
     }
 
 }
