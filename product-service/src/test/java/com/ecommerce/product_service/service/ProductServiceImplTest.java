@@ -211,4 +211,14 @@ public class ProductServiceImplTest {
                 .hasMessageContaining("id: 99");
     }
 
+    @Test
+    @DisplayName("getProductBySku: should return response when SKU exists")
+    void getProductBySku_shouldReturn_whenFound (){
+        when(productRepository.findBySku("IPHONE15-001")).thenReturn(Optional.of(product));
+        when(productMapper.toResponse(product)).thenReturn(productResponse);
+
+        ProductResponse result = productService.getProductBySku("IPHONE15-001");
+
+        assertThat(result.getSku()).isEqualTo("IPHONE15-001");
+    }
 }
