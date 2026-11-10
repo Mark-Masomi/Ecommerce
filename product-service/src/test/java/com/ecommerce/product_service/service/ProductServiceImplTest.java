@@ -221,4 +221,15 @@ public class ProductServiceImplTest {
 
         assertThat(result.getSku()).isEqualTo("IPHONE15-001");
     }
+
+    @Test
+    @DisplayName("getProductBySku: should throw when SKU not found")
+    void getProductBySku_shouldThrow_whenNotFound(){
+        when(productRepository.findBySku("UNKNOWN")).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> productService.getProductBySku("UNKNOWN"))
+                .isInstanceOf(ProductNotFoundException.class)
+                .hasMessageContaining("sku: UNKNOWN");
+    }
+    
 }
