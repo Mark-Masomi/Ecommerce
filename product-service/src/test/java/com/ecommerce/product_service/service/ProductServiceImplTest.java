@@ -231,5 +231,14 @@ public class ProductServiceImplTest {
                 .isInstanceOf(ProductNotFoundException.class)
                 .hasMessageContaining("sku: UNKNOWN");
     }
-    
+
+    @Test
+    @DisplayName("getStock: should return stock quantity")
+    void getStock_shouldReturnQuantity(){
+        when(productRepository.findById(1L)).thenReturn(Optional.of(product));
+
+        Integer stock = productService.getStock(1L);
+
+        assertThat(stock).isEqualTo(100);
+    }
 }
