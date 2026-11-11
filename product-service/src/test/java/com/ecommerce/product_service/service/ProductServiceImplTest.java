@@ -229,7 +229,7 @@ public class ProductServiceImplTest {
 
         assertThatThrownBy(() -> productService.getProductBySku("UNKNOWN"))
                 .isInstanceOf(ProductNotFoundException.class)
-                .hasMessageContaining("sku: UNKNOWN");
+                .hasMessageContaining("SKU: UNKNOWN");
     }
 
     @Test
