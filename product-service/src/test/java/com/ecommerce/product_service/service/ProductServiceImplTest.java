@@ -241,4 +241,26 @@ public class ProductServiceImplTest {
 
         assertThat(stock).isEqualTo(100);
     }
+
+    @Test
+    @DisplayName("getAllProducts: should map every entity to response")
+    void getAllProducts_shouldMapAll () {
+        Product second = Product.builder()
+                .id(2L)
+                .sku("SAMSUNG-S24")
+                .name("Samsung galaxy s24")
+                .price(new BigDecimal("9990.00"))
+                .stockQuantity(50)
+                .available(true)
+                .build();
+
+        when(productRepository.findAll()).thenReturn(List.of(product, second));
+        when(productMapper.toResponse(product)).thenReturn(productResponse);
+        when(productMapper.toResponse(second)).thenReturn(productResponse);
+
+        List<ProductResponse> result = productService.getAllProducts();
+
+        assertThat(result).hasSize(2);
+        verify(productMapper, times(2)).toResponse(any(Product.class));
+     }
 }
