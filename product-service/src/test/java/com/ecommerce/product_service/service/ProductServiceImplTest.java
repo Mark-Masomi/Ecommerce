@@ -3,6 +3,7 @@ package com.ecommerce.product_service.service;
 
 import com.ecommerce.product_service.dto.CreateProductRequest;
 import com.ecommerce.product_service.dto.ProductResponse;
+import com.ecommerce.product_service.dto.UpdateProductRequest;
 import com.ecommerce.product_service.exception.ProductAlreadyExistsException;
 import com.ecommerce.product_service.exception.ProductNotFoundException;
 import com.ecommerce.product_service.mapper.ProductMapper;
@@ -16,6 +17,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import static org.mockito.Mockito.doAnswer;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -263,4 +265,46 @@ public class ProductServiceImplTest {
         assertThat(result).hasSize(2);
         verify(productMapper, times(2)).toResponse(any(Product.class));
      }
+
+    // ==========================================================
+    // UPDATE
+    // ==========================================================
+
+    @Test
+    @DisplayName("updateProduct: should update managed entity and recalculate available")
+    void updateProduct_shouldUpdateAndRecalculateAvailable() {
+
+        UpdateProductRequest request = UpdateProductRequest.builder()
+                .name("iPhone 15 pro")
+                .description("updated")
+                .price(new BigDecimal("14990.00"))
+                .stockQuantity(0)
+                .build();
+
+        when(productRepository.findById(1L)).thenReturn(Optional.of(product));
+        when(productMapper.toResponse(product)).thenReturn(productResponse);
+
+        // Simulate the mapper updating the entity
+        doAnswer(invocation -> {
+            Product entity = invocation.getArgument(0);
+            UpdateProductRequest updateRequest = invocation.getArgument(1);
+
+            entity.setName(updateRequest.getName());
+            entity.setDescription(updateRequest.getDescription());
+            entity.setPrice(updateRequest.getPrice());
+            entity.setStockQuantity(updateRequest.getStockQuantity());
+
+            return null;
+        }).when(productMapper).updateEntity(product, request);
+
+        // Execute
+        productService.updateProduct(1L, request);
+
+        // Verify mapper was called
+        verify(productMapper).updateEntity(product, request);
+
+        // Verify availability was recalculated
+        assertThat(product.getStockQuantity()).isZero();
+        assertThat(product.getAvailable()).isFalse();
+    }
 }
