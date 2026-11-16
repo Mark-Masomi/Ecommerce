@@ -307,4 +307,21 @@ public class ProductServiceImplTest {
         assertThat(product.getStockQuantity()).isZero();
         assertThat(product.getAvailable()).isFalse();
     }
+
+    @Test
+    @DisplayName("updateProduct: should throw when product not found")
+    void updateProduct_shouldThrow_whenNotFound(){
+
+        when(productRepository.findById(99L)).thenReturn(Optional.empty());
+
+        UpdateProductRequest request = UpdateProductRequest.builder()
+                .name("X")
+                .price(new BigDecimal("1.00"))
+                .stockQuantity(1)
+                .build();
+
+        assertThatThrownBy(() -> productService.updateProduct(99L,request))
+                .isInstanceOf(ProductNotFoundException.class);
+    }
+
 }
